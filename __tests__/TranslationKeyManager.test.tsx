@@ -4,9 +4,34 @@ import userEvent from "@testing-library/user-event";
 import TranslationKeyManager from "../app/components/TranslationKeyManager";
 import useTransManagerStore from "../app/store/useTransManagerStore";
 import toast from "react-hot-toast";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 jest.mock("../app/store/useTransManagerStore");
 jest.mock("react-hot-toast");
+
+const mockRefetch = jest.fn();
+const mockCreateMutate = jest.fn();
+
+jest.mock("../app/hooks/useLocalizations", () => ({
+  useLocalizations: () => ({
+    refetch: mockRefetch,
+  }),
+}));
+
+jest.mock("../app/hooks/useCreateLocalization", () => ({
+  useCreateLocalization: () => ({
+    mutate: mockCreateMutate,
+  }),
+}));
+
+const createTestQueryClient = () =>
+  new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+    },
+  });
 
 const mockUseTransManagerStore = useTransManagerStore as jest.MockedFunction<
   typeof useTransManagerStore
@@ -16,9 +41,6 @@ const mockToastSuccess = toast.success as jest.MockedFunction<
 >;
 
 describe("TranslationKeyManager", () => {
-  const mockFetchLocalizations = jest.fn();
-  const mockCreateLocalization = jest.fn();
-
   beforeEach(() => {
     jest.clearAllMocks();
 
@@ -42,19 +64,19 @@ describe("TranslationKeyManager", () => {
         },
       ],
       user: { email: "test@example.com", name: "Tester" },
-      error: null,
-      createLocalization: mockCreateLocalization,
-      fetchLocalizations: mockFetchLocalizations,
     });
   });
 
   it("displays table headers including selected language codes", () => {
+    const queryClient = createTestQueryClient();
     render(
-      <TranslationKeyManager
-        handleTransSearch={(keys) => keys}
-        isAddNew={false}
-        setIsAddNew={jest.fn()}
-      />
+      <QueryClientProvider client={queryClient}>
+        <TranslationKeyManager
+          handleTransSearch={(keys) => keys || []}
+          isAddNew={false}
+          setIsAddNew={jest.fn()}
+        />
+      </QueryClientProvider>
     );
 
     expect(screen.getByText("Key")).toBeInTheDocument();
@@ -64,32 +86,44 @@ describe("TranslationKeyManager", () => {
   });
 
   it("shows add new inputs when isAddNew is true", () => {
+    const queryClient = createTestQueryClient();
     render(
-      <TranslationKeyManager
-        handleTransSearch={(keys) => keys}
-        isAddNew={true}
-        setIsAddNew={jest.fn()}
-      />
+      <QueryClientProvider client={queryClient}>
+        <TranslationKeyManager
+          handleTransSearch={(keys) => keys || []}
+          isAddNew={true}
+          setIsAddNew={jest.fn()}
+        />
+      </QueryClientProvider>
     );
 
     expect(screen.getByPlaceholderText("Enter Key")).toBeInTheDocument();
-    expect(screen.getByPlaceholderText("Enter value for en")).toBeInTheDocument();
-    expect(screen.getByPlaceholderText("Enter value for fr")).toBeInTheDocument();
-    expect(screen.getByPlaceholderText("Enter value for es")).toBeInTheDocument();
+    expect(
+      screen.getByPlaceholderText("Enter value for en")
+    ).toBeInTheDocument();
+    expect(
+      screen.getByPlaceholderText("Enter value for fr")
+    ).toBeInTheDocument();
+    expect(
+      screen.getByPlaceholderText("Enter value for es")
+    ).toBeInTheDocument();
   });
 
   it("calls setIsAddNew(false) when cancel button clicked", () => {
     const mockSetIsAddNew = jest.fn();
-
+    const queryClient = createTestQueryClient();
+    
     render(
-      <TranslationKeyManager
-        handleTransSearch={(keys) => keys}
-        isAddNew={true}
-        setIsAddNew={mockSetIsAddNew}
-      />
+      <QueryClientProvider client={queryClient}>
+        <TranslationKeyManager
+          handleTransSearch={(keys) => keys || []}
+          isAddNew={true}
+          setIsAddNew={mockSetIsAddNew}
+        />
+      </QueryClientProvider>
     );
 
-    const cancelButton = screen.getByTestId("close-add-new-inputs")
+    const cancelButton = screen.getByTestId("close-add-new-inputs");
     fireEvent.click(cancelButton);
 
     expect(mockSetIsAddNew).toHaveBeenCalledWith(false);
@@ -97,16 +131,19 @@ describe("TranslationKeyManager", () => {
 
   it("adds new translation successfully", async () => {
     const mockSetIsAddNew = jest.fn();
-
-    mockCreateLocalization.mockResolvedValueOnce({});
-    mockFetchLocalizations.mockResolvedValueOnce({});
+    const queryClient = createTestQueryClient();
+    mockCreateMutate.mockImplementation((data, callbacks) =>
+      callbacks.onSuccess()
+    );
 
     render(
-      <TranslationKeyManager
-        handleTransSearch={(keys) => keys}
-        isAddNew={true}
-        setIsAddNew={mockSetIsAddNew}
-      />
+      <QueryClientProvider client={queryClient}>
+        <TranslationKeyManager
+          handleTransSearch={(keys) => keys || []}
+          isAddNew={true}
+          setIsAddNew={mockSetIsAddNew}
+        />
+      </QueryClientProvider>
     );
 
     const keyInput = screen.getByPlaceholderText("Enter Key");
@@ -125,19 +162,22 @@ describe("TranslationKeyManager", () => {
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(mockCreateLocalization).toHaveBeenCalledWith(
+      expect(mockCreateMutate).toHaveBeenCalledWith(
         expect.objectContaining({
           key: "_thanks_",
           translations: expect.objectContaining({
             en: expect.objectContaining({ value: "Thanks" }),
-            fr: expect.objectContaining({ value: "Merci" }),
             es: expect.objectContaining({ value: "Gracias" }),
+            fr: expect.objectContaining({ value: "Merci" }),
           }),
-        })
+        }),
+        expect.any(Object)
       );
 
-      expect(mockFetchLocalizations).toHaveBeenCalled();
-      expect(mockToastSuccess).toHaveBeenCalledWith("Translation key successfully created!");
+      expect(mockRefetch).toHaveBeenCalled();
+      expect(mockToastSuccess).toHaveBeenCalledWith(
+        "Translation key successfully created!"
+      );
       expect(mockSetIsAddNew).toHaveBeenCalledWith(false);
     });
   });

@@ -2,27 +2,29 @@
 import { IoCheckmark } from "react-icons/io5";
 import useTransManagerStore from "../store/useTransManagerStore";
 import { IoMdClose } from "react-icons/io";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import TranslationKeyItem from "./TranslationKeyItem";
 import toast from "react-hot-toast";
-import { ITransKey, ITranslationKeyManager } from "../interfaces/TransManager.interface";
+import {
+  ITransKey,
+  ITranslationKeyManager,
+} from "../interfaces/TransManager.interface";
+import { useLocalizations } from "../hooks/useLocalizations";
+import { useCreateLocalization } from "../hooks/useCreateLocalization";
 
-const TranslationKeyManager:React.FC<ITranslationKeyManager> = ({
+const TranslationKeyManager: React.FC<ITranslationKeyManager> = ({
   handleTransSearch,
   isAddNew,
   setIsAddNew,
 }) => {
   const {
     selectedLanguages,
-    translationKeys,
-    user,
-    error,
-    createLocalization,
-    fetchLocalizations,
+    user
   } = useTransManagerStore();
-  useEffect(() => {
-    fetchLocalizations();
-  }, [fetchLocalizations]);
+
+  const { data: translationKeys, refetch: fetchLocalizations } =
+    useLocalizations();
+  const createLocalization = useCreateLocalization();
 
   const [trans, setTrans] = useState({
     key: "",
@@ -57,15 +59,18 @@ const TranslationKeyManager:React.FC<ITranslationKeyManager> = ({
       },
     };
 
-    try {
-      await createLocalization(transKeyObj);
-      await fetchLocalizations();
-      toast.success("Translation key successfully created!");
-      setIsAddNew(false);
-    } catch (e: unknown) {
-      console.log(e);
-      toast.error(`${error || "Looks like something went wrong"}`);
-    }
+    createLocalization.mutate(transKeyObj, {
+      onSuccess: async() => {
+        await fetchLocalizations();
+        setIsAddNew(false);
+        toast.success("Translation key successfully created!");
+      },
+      onError: (error) => {
+        toast.error(`${error.message || "Looks like something went wrong"}`);
+        setIsAddNew(false);
+        console.error(error);
+      },
+    });
   };
 
   return (
@@ -106,14 +111,18 @@ const TranslationKeyManager:React.FC<ITranslationKeyManager> = ({
             >
               <IoMdClose />
             </button>
-            <button data-testid="add-translation-key" onClick={addNewTranslation} className="cursor-pointer">
+            <button
+              data-testid="add-translation-key"
+              onClick={addNewTranslation}
+              className="cursor-pointer"
+            >
               <IoCheckmark className="text-green-700 text-lg" />
             </button>
           </div>
         </div>
       )}
       {/* Table Body  */}
-      {handleTransSearch(translationKeys).map((trans: ITransKey) => (
+      {handleTransSearch(translationKeys)?.map((trans: ITransKey) => (
         <TranslationKeyItem key={trans.id} trans={trans} />
       ))}
     </div>
