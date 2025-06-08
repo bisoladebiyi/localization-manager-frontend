@@ -6,10 +6,8 @@ import { ITransManagerStore } from '../interfaces/TransManagerStore.interface'
 const useTransManagerStore = create<ITransManagerStore>()(
     persist(
         (set) => ({
-            user: {
-                name: null,
-                email: null
-            },
+            hasHydrated: false,
+            user: { name: null, email: null },
             loading: false,
             error: null,
             languages: [
@@ -38,6 +36,9 @@ const useTransManagerStore = create<ITransManagerStore>()(
                 languages: state.languages,
                 selectedLanguages: state.selectedLanguages
             }),
+            onRehydrateStorage: () => (state) => {
+                state!.hasHydrated = true;
+            },
         }
     )
 )

@@ -1,6 +1,7 @@
 import { ILanguage, ITransKey } from "./TransManager.interface"
 
 export interface ITransManagerStore {
+    hasHydrated: boolean
     user: {
         email: string | null
         name: string | null

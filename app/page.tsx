@@ -14,29 +14,31 @@ const queryClient = new QueryClient();
 export default function Home() {
   const [searchVal, setSearchVal] = useState<string>("");
   const [isAddNew, setIsAddNew] = useState<boolean>(false);
-  const { user, updateUser } = useTransManagerStore();
+  const { user, hasHydrated, updateUser } = useTransManagerStore();
 
   useEffect(() => {
-    if (user.email == null && user.name == null) return;
+    if (!hasHydrated) return;
 
-    if (!user.email && !user.name) {
+    if (!user.email || !user.name) {
       const name = prompt("Please enter your name") || "";
       const email = prompt("Please enter your email") || "";
 
       updateUser(name, email);
     }
-  }, [user, updateUser]);
+  }, [hasHydrated, user, updateUser]);
 
   const handleTransSearch = (transKeysList: ITransKey[]) => {
     const searchValLower = searchVal.toLowerCase();
 
-    return transKeysList?.filter((trans: ITransKey) => {
-      if (trans.key.toLowerCase().includes(searchValLower)) return true;
+    return (
+      transKeysList?.filter((trans: ITransKey) => {
+        if (trans.key.toLowerCase().includes(searchValLower)) return true;
 
-      return Object.values(trans.translations).some((translation) =>
-        translation.value.toLowerCase().includes(searchValLower)
-      );
-    }) || [];
+        return Object.values(trans.translations).some((translation) =>
+          translation.value.toLowerCase().includes(searchValLower)
+        );
+      }) || []
+    );
   };
   return (
     <QueryClientProvider client={queryClient}>
