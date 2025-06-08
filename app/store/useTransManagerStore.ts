@@ -9,7 +9,10 @@ const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 const useTransManagerStore = create<ITransManagerStore>()(
     persist(
         (set) => ({
-            user: null,
+            user: {
+                name: null,
+                email: null
+            },
             loading: false,
             error: null,
             languages: [

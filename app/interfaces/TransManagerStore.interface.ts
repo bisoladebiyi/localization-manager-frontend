@@ -2,9 +2,9 @@ import { ILanguage, ITransKey } from "./TransManager.interface"
 
 export interface ITransManagerStore {
     user: {
-        email: string
-        name: string
-    } | null
+        email: string | null
+        name: string | null
+    }
     languages: ILanguage[]
     selectedLanguages: ILanguage[]
     translationKeys: ITransKey[]

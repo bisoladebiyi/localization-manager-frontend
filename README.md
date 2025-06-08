@@ -26,6 +26,9 @@ This is the frontend for the Localization Manager, built with **Next.js**, **Tai
 
 ---
 
+## 🌐 Live Site
+[Live Link](https://localization-manager-frontend.vercel.app/)
+
 ## 📦 Installation
 
 ```bash

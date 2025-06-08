@@ -16,7 +16,7 @@ export default function Home() {
   } = useTransManagerStore();
 
   useEffect(() => {
-    if (!user || Object.keys(user).length === 0) return;
+    if (user.email == null && user.name == null) return;
 
     if(!user.email && !user.name) {
       const name = prompt("Please enter your name") || "";
