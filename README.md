@@ -1,36 +1,57 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🌐 Localization Manager — Frontend
 
-## Getting Started
+This is the frontend for the Localization Manager, built with **Next.js**, **Tailwind CSS**, and **Zustand** for global state management. It allows users to manage, edit, and translate localization keys across multiple (fixed) languages.
 
-First, run the development server:
+---
+
+## 🌟 Features
+
+- View and edit localization keys
+- Delete localization keys
+- Input translations for multiple languages
+- Auto-save on blur with visual feedback
+- State management with Zustand
+- Toast notifications for actions
+
+---
+
+## ⚙️ Tech Stack
+
+- **Next.js** — React framework
+- **Tailwind CSS** — Utility-first styling
+- **Zustand** — Lightweight state management
+- **Axios** — API communication
+- **React Toastify** — Notification system
+- **TypeScript** — Type safety
+
+---
+
+## 📦 Installation
+
+```bash
+git clone https://github.com/bisoladebiyi/localization-manager-frontend.git
+npm install
+```
+
+## 🔐 Environment Variables
+
+Create your `.env` file in root folder
+
+```bash
+NEXT_PUBLIC_API_BASE_URL=http://localhost:8000/api
+```
+
+## ▶️ Running the App
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## ✅ Testing
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm test
+```
+**Tests cover:**
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Component render tests  
