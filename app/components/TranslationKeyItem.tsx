@@ -4,26 +4,32 @@ import useTransManagerStore from "../store/useTransManagerStore";
 import { deepEqual } from "../utils/helpers";
 import toast from "react-hot-toast";
 import { ILanguage, ITransKey, ITranslationKeyItem } from "../interfaces/TransManager.interface";
+import { useEditLocalization } from "../hooks/useEditLocalization";
+import { useDeleteLocalization } from "../hooks/useDeleteLocalizations";
+import { useLocalizations } from "../hooks/useLocalizations";
 
 const TranslationKeyItem:React.FC<ITranslationKeyItem> = ({ trans }) => {
   const [transState, setTransState] = useState<ITransKey>(trans);
   const {
     selectedLanguages,
-    error,
-    deleteLocalization,
-    fetchLocalizations,
-    editLocalization,
   } = useTransManagerStore();
 
+    const { refetch: fetchLocalizations } =
+      useLocalizations();
+  const editLocalization = useEditLocalization();
+  const deleteLocalization = useDeleteLocalization();
+
   const deleteTranslation = async () => {
-    try {
-      await deleteLocalization(trans.id ?? "");
-      await fetchLocalizations();
-      toast.success("Translation key successfully deleted!");
-    } catch (e: unknown) {
-      console.log(e, "hiii");
-      toast.error(`${error || "Looks like something went wrong"}`);
-    }
+    deleteLocalization.mutate(trans.id ?? "", {
+      onSuccess: async() => {
+        await fetchLocalizations();
+        toast.success("Translation key successfully deleted!");
+      },
+      onError: (error) => {
+        toast.error(`${error.message || "Looks like something went wrong"}`);
+        console.error(error);
+      },
+    });
   };
 
   const onTransStateChange = (e: React.ChangeEvent<HTMLInputElement>, key: boolean, code?: string) => {
@@ -48,14 +54,16 @@ const TranslationKeyItem:React.FC<ITranslationKeyItem> = ({ trans }) => {
   const updateTranslation = async () => {
     if (deepEqual(transState, trans)) return;
 
-    try {
-      await editLocalization(transState);
-      await fetchLocalizations();
-      toast.success("Translation key successfully updated!");
-    } catch (e: unknown) {
-      console.log(e);
-      toast.error(`${error || "Looks like something went wrong"}`);
-    }
+    editLocalization.mutate(transState, {
+      onSuccess: async() => {
+        await fetchLocalizations();
+        toast.success("Translation key successfully updated!");
+      },
+      onError: (error) => {
+        toast.error(`${error.message || "Looks like something went wrong"}`);
+        console.error(error);
+      },
+    });
   };
   return (
     <div
